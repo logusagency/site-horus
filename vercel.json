@@ -4,6 +4,8 @@
   "buildCommand": "true",
   "outputDirectory": ".",
   "rewrites": [
-    { "source": "/", "destination": "/HORUS.html" }
+    { "source": "/", "destination": "/HORUS.html" },
+    { "source": "/dev", "destination": "/dev.html" },
+    { "source": "/medicos", "destination": "/medicos.html" }
   ]
 }
