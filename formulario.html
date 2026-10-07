@@ -502,7 +502,7 @@
 (() => {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const WA_NUMBER = '5535997608870'; // TODO: número oficial do WhatsApp da Hórus (DDI+DDD, só dígitos)
-  const LEAD_API = 'https://xljjhcqhvhiyjjqlailu.supabase.co/functions/v1/register-inbound-lead';
+  const LEAD_API = 'https://utpwoblyahoarskdopxh.supabase.co/functions/v1/register-inbound-lead';
 
   /* ---- aplica WA_NUMBER em todos os links estáticos wa.me ---- */
   document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a => {
@@ -625,7 +625,7 @@
     const intencaoMap = { abrir: 'abrir', trocar: 'trocar' };
     const perfil = perfilMap[perfilInput.value] || 'profissional';
     const intencao = intencaoMap[intencaoInput.value] || 'abrir';
-    const msg = 'Oi, sou ' + nome + ', ' + perfil + ', quero ' + intencao + ' meu CNPJ.';
+    const msg = 'Oi, sou ' + nome + ', ' + perfil + ', quero ' + (intencao === 'trocar' ? 'trocar de contabilidade.' : 'abrir meu CNPJ.');
     return 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(msg);
   }
 
@@ -640,8 +640,8 @@
       nome: document.getElementById('nome').value.trim(),
       email: document.getElementById('email').value.trim(),
       telefone: wa.value.replace(/\D/g, ''),
-      origem: 'inbound_landing',
-      intencao_detectada: intencaoInput.value === 'trocar' ? 'trocar_contabilidade' : 'abrir_empresa',
+      origem: { instagram: 'inbound_instagram', email: 'inbound_email' }[qs.get('utm_source')] || 'inbound_landing',
+      intencao_detectada: intencaoInput.value === 'trocar' ? 'trocar_contador' : 'abrir_empresa',
       profissao: profissao.value.trim() || perfilProfissao[perfilInput.value] || '',
       faturamento: (document.getElementById('faturamento').value || '').trim()
     };

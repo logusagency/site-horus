@@ -887,7 +887,7 @@
         // ===== REDIRECT PARA FORMULÁRIO EXTERNO =====
         function openModal(intent) {
             intent = intent || 'abrir';
-            const target = new URL('https://app.horuscnt.com.br/formulario');
+            const target = new URL('/formulario', window.location.origin);
 
             // Repassa UTMs (e parâmetros de rastreio) presentes na URL atual
             const current = new URLSearchParams(window.location.search);
@@ -901,8 +901,8 @@
             if (!target.searchParams.has('utm_medium'))   target.searchParams.set('utm_medium', 'site');
             if (!target.searchParams.has('utm_campaign')) target.searchParams.set('utm_campaign', 'landing_page');
 
-            // Intenção do botão clicado (abrir empresa / conhecer)
-            target.searchParams.set('intent', intent);
+            // Intenção do botão clicado: abrir empresa ou conhecer (trocar de contabilidade)
+            target.searchParams.set('intencao', intent === 'conhecer' ? 'trocar' : 'abrir');
 
             window.location.href = target.toString();
         }
