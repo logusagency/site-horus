@@ -4,11 +4,13 @@
   "description": "Hórus - Gestão Financeira e Contábil",
   "scripts": {
     "start": "serve -l 3000",
-    "dev": "serve -l 3000"
+    "dev": "serve -l 3000",
+    "test": "node --test tests/formulario.test.cjs"
   },
   "keywords": [],
   "license": "ISC",
   "devDependencies": {
+    "jsdom": "^20.0.3",
     "serve": "^14.2.1"
   }
 }
