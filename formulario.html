@@ -309,7 +309,7 @@
 
           <p class="text-sm text-white/45 max-w-md">
             Prefere já chamar no WhatsApp?
-            <a id="direct-wa" href="https://wa.me/5535997608870" target="_blank" rel="noopener" class="text-gold hover:underline font-medium inline-flex items-center gap-1">
+            <a id="direct-wa" data-whatsapp hidden style="display:none" target="_blank" rel="noopener" class="text-gold hover:underline font-medium inline-flex items-center gap-1">
               Falar no WhatsApp
               <iconify-icon icon="lucide:message-circle" class="text-sm"></iconify-icon>
             </a>
@@ -366,7 +366,7 @@
             <!-- nome -->
             <div class="sm:col-span-2">
               <label class="field-label" for="nome">Nome completo <span class="req">*</span></label>
-              <input class="field" type="text" id="nome" name="nome" autocomplete="name" placeholder="Seu nome" required />
+              <input class="field" type="text" id="nome" maxlength="120" name="nome" autocomplete="name" placeholder="Seu nome" required />
               <p class="err-msg" data-for="nome">Conta pra gente seu nome.</p>
             </div>
 
@@ -380,14 +380,14 @@
             <!-- email -->
             <div>
               <label class="field-label" for="email">E-mail <span class="req">*</span></label>
-              <input class="field" type="email" id="email" name="email" autocomplete="email" placeholder="voce@email.com" required />
+              <input class="field" type="email" id="email" maxlength="254" name="email" autocomplete="email" placeholder="voce@email.com" required />
               <p class="err-msg" data-for="email">Coloca um e-mail válido.</p>
             </div>
 
             <!-- profissao -->
             <div class="sm:col-span-2">
               <label class="field-label" for="profissao">Profissão / área</label>
-              <input class="field" type="text" id="profissao" name="profissao" placeholder="Desenvolvedor, médico, designer..." />
+              <input class="field" type="text" id="profissao" maxlength="120" name="profissao" placeholder="Desenvolvedor, médico, designer..." />
             </div>
 
             <!-- faturamento -->
@@ -404,12 +404,14 @@
             </div>
           </div>
 
+          <div id="inbound-verification"></div>
+          <p id="submit-error" role="alert" tabindex="-1" class="text-red-400" hidden></p>
           <!-- privacy -->
           <label class="check-wrap flex items-start gap-3 mt-5 cursor-pointer select-none">
             <input type="checkbox" id="privacy" name="privacy" class="sr-only peer" style="position:absolute;opacity:0;width:0;height:0" required />
             <span class="check-box"><iconify-icon icon="lucide:check"></iconify-icon></span>
             <span class="text-sm text-white/60 leading-snug">
-              Li e aceito a <a href="politica-privacidade.html" class="text-gold hover:underline" target="_blank" rel="noopener">Política de Privacidade</a> e autorizo o contato. <span class="text-gold">*</span>
+              Li a <a href="politica-privacidade.html" class="text-gold hover:underline" target="_blank" rel="noopener">Política de Privacidade</a> e autorizo o tratamento dos meus dados para contato pela Hórus. <span class="text-gold">*</span>
             </span>
           </label>
           <p class="err-msg" data-for="privacy">Pra continuar, precisa aceitar a política.</p>
@@ -421,7 +423,7 @@
           </button>
 
           <p class="text-center mt-4 font-mono text-xs tracking-[0.06em] text-white/40">
-            <span class="text-gold/70">//</span> Resposta em minutos. Sem robô. Sem fila.
+            <span class="text-gold/70">//</span> Seus dados serão usados para atender sua solicitação.
           </p>
         </form>
 
@@ -437,9 +439,9 @@
             Recebemos seu contato!
           </h2>
           <p class="text-white/60 leading-relaxed max-w-sm mx-auto mb-8 fade-swap">
-            Nossa equipe te chama no WhatsApp em minutos. Sem robô, sem fila, sem juridiquês.
+            Seu contato foi registrado. Nossa equipe poderá entrar em contato pelos canais informados.
           </p>
-          <a id="wa-success" href="https://wa.me/5535997608870" target="_blank" rel="noopener" class="btn-gold magnetic rounded-full inline-flex items-center justify-center gap-2 px-7 py-4 text-base">
+          <a id="wa-success" data-whatsapp hidden style="display:none" target="_blank" rel="noopener" class="btn-gold magnetic rounded-full inline-flex items-center justify-center gap-2 px-7 py-4 text-base">
             <iconify-icon icon="lucide:message-circle" class="text-lg"></iconify-icon>
             Falar agora no WhatsApp
           </a>
@@ -478,7 +480,7 @@
           <div class="text-white/40 font-mono text-xs tracking-widest mb-3">COMEÇAR</div>
           <ul class="space-y-2 text-white/65">
             <li><a href="/formulario" class="hover:text-gold transition-colors">Abrir meu CNPJ</a></li>
-            <li><a href="https://wa.me/5535997608870" class="hover:text-gold transition-colors">WhatsApp</a></li>
+            <li><a data-whatsapp hidden style="display:none" class="hover:text-gold transition-colors">WhatsApp</a></li>
           </ul>
         </div>
         <div>
@@ -498,15 +500,22 @@
   </div>
 </footer>
 
+<script src="/public/horus-lead-config.js"></script>
 <script>
 (() => {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const WA_NUMBER = '5535997608870'; // TODO: número oficial do WhatsApp da Hórus (DDI+DDD, só dígitos)
-  const LEAD_API = 'https://utpwoblyahoarskdopxh.supabase.co/functions/v1/register-inbound-lead';
+  const config = window.HORUS_LEAD_CONFIG || {};
+  const WA_NUMBER = /^55[0-9]{10,11}$/.test(config.whatsappNumber || '') ? config.whatsappNumber : '';
+  const LEAD_API = config.endpoint || '';
+  const CONSENT_VERSION = 'horus-contato-2026-10-13';
+  const LEAD_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  let challengeToken = '';
+  let widget;
 
   /* ---- aplica WA_NUMBER em todos os links estáticos wa.me ---- */
-  document.querySelectorAll('a[href^="https://wa.me/"]').forEach(a => {
-    a.href = 'https://wa.me/' + WA_NUMBER;
+  document.querySelectorAll('a[data-whatsapp]').forEach(a => {
+    if (WA_NUMBER) { a.href = 'https://wa.me/' + WA_NUMBER; a.hidden = false; a.style.removeProperty('display'); }
+    else { a.hidden = true; a.removeAttribute('href'); }
   });
 
   /* ---- reveals ---- */
@@ -633,6 +642,27 @@
   const form = document.getElementById('lead-form');
   const successState = document.getElementById('success-state');
   const waSuccess = document.getElementById('wa-success');
+  const submitError = document.getElementById('submit-error');
+  function displayError(message) { submitError.textContent = message; submitError.hidden = false; submitError.focus(); }
+  function renderChallenge() {
+    widget = window.turnstile.render(document.getElementById('inbound-verification'), {
+      sitekey: config.turnstileSiteKey, action: 'inbound-lead',
+      callback: token => { challengeToken = token; },
+      'expired-callback': () => { challengeToken = ''; },
+      'error-callback': () => { challengeToken = ''; displayError('Não foi possível verificar. Recarregue e tente novamente.'); }
+    });
+  }
+  if (!LEAD_API || !config.turnstileSiteKey) {
+    displayError('Formulário temporariamente indisponível. Tente novamente mais tarde.');
+  } else if (window.turnstile) renderChallenge();
+  else {
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.onload = renderChallenge;
+    script.onerror = () => displayError('Não foi possível verificar. Recarregue e tente novamente.');
+    document.head.appendChild(script);
+  }
 
   function buildLeadPayload() {
     const perfilProfissao = { dev: 'Dev / Tech', medico: 'Médico', outro: '' };
@@ -643,38 +673,52 @@
       origem: { instagram: 'inbound_instagram', email: 'inbound_email' }[qs.get('utm_source')] || 'inbound_landing',
       intencao_detectada: intencaoInput.value === 'trocar' ? 'trocar_contador' : 'abrir_empresa',
       profissao: profissao.value.trim() || perfilProfissao[perfilInput.value] || '',
-      faturamento: (document.getElementById('faturamento').value || '').trim()
+      faturamento: (document.getElementById('faturamento').value || '').trim(),
+      consentimento: { aceito: document.getElementById('privacy').checked, versao: CONSENT_VERSION },
+      turnstile_token: challengeToken
     };
   }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (document.getElementById('submit-btn').disabled) return;
+    submitError.hidden = true;
     if (!validate()) {
       const firstErr = form.querySelector('.field.err, .check-wrap.err');
       if (firstErr) firstErr.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
       return;
     }
 
+    if (!/^https?:\/\//.test(LEAD_API) || !config.turnstileSiteKey || !challengeToken) {
+      displayError('Conclua a verificação de segurança. Se estiver indisponível, tente novamente mais tarde.');
+      return;
+    }
     const submitBtn = document.getElementById('submit-btn');
     const originalLabel = submitLabel.textContent;
     submitBtn.disabled = true;
     submitLabel.textContent = 'Enviando...';
 
     try {
-      await fetch(LEAD_API, {
+      const response = await fetch(LEAD_API, {
         method: 'POST',
+        signal: AbortSignal.timeout(30000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(buildLeadPayload())
       });
+      if (!response.ok) throw new Error('Registro recusado');
+      const result = await response.json();
+      if (!result || typeof result.lead_id !== 'string' || !LEAD_ID_RE.test(result.lead_id)) throw new Error('Registro sem confirmação');
     } catch (err) {
-      // WhatsApp é o canal principal deste fluxo; segue para o sucesso mesmo se o registro falhar
-      console.error('Falha ao registrar lead:', err);
+      displayError('Não foi possível confirmar seu contato. Confira os dados, refaça a verificação e tente novamente.');
+      return;
     } finally {
+      challengeToken = '';
+      if (widget !== undefined) window.turnstile.reset(widget);
       submitBtn.disabled = false;
       submitLabel.textContent = originalLabel;
     }
 
-    waSuccess.href = buildWaLink();
+    if (WA_NUMBER) waSuccess.href = buildWaLink();
     form.classList.add('hidden');
     successState.classList.remove('hidden');
     successState.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
