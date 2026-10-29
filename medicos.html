@@ -137,6 +137,37 @@
             scrollbar-width: none;
         }
     </style>
+    <!-- Umami (Logus): sem cookies; URL limpa antes do envio -->
+    <script>
+      /* Limpa a URL antes de enviar: troca ids por :id, tira o # e mantém só parâmetros de campanha. */
+      window.logusUmami = function (tipo, p) {
+        try {
+          var ok = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','ref','origem','plano','dor','marca','gclid','fbclid'];
+          var limpa = function (v) {
+            if (!v) return v;
+            var rel = v.charAt(0) === '/';
+            var u = new URL(v, location.origin);
+            if (u.origin !== location.origin) return v;
+            u.hash = '';
+            u.pathname = u.pathname
+              .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, ':id')
+              .replace(/\/\d{4,}(?=\/|$)/g, '/:id');
+            var q = new URLSearchParams();
+            u.searchParams.forEach(function (val, k) { if (ok.indexOf(k) > -1) q.set(k, val); });
+            u.search = q.toString();
+            return rel ? u.pathname + u.search : u.toString();
+          };
+          if (p && p.url) p.url = limpa(p.url);
+          if (p && p.referrer) p.referrer = limpa(p.referrer);
+        } catch (e) {}
+        return p;
+      };
+    </script>
+    <script defer src="https://analytics.logus.agency/script.js"
+      data-website-id="134b34a7-5325-48cf-b01b-111d9e196c33"
+      data-domains="horuscnt.com.br,www.horuscnt.com.br,app.horuscnt.com.br"
+      data-exclude-hash="true"
+      data-before-send="logusUmami"></script>
 </head>
 <body class="bg-zinc-50 text-zinc-900 selection:bg-[#b89818] selection:text-white overflow-x-hidden">
 
