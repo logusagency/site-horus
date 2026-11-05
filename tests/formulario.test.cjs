@@ -40,3 +40,16 @@ test('missing consent: no request',async()=>{const x=setup(new Response('{}'));x
 test('missing configuration: no request, visible error',async()=>{const x=setup(new Response('{}'),{});await x.submit();assert.equal(x.calls.length,0);assert.equal(x.w.document.getElementById('submit-error').hidden,false);x.dom.window.close();});
 test('consumed proof requires a new verification before retry',async()=>{const x=setup(new Response('',{status:500}));await x.submit();await x.submit();assert.equal(x.calls.length,1);x.proof();await x.submit();assert.equal(x.calls.length,2);x.dom.window.close();});
 test('visible consent matches frozen server wording',()=>{const dom=new JSDOM(html);const text=dom.window.document.querySelector('.check-wrap').textContent.replace(/\s+/g,' ').trim();assert.ok(text.includes('Li a Política de Privacidade e autorizo o tratamento dos meus dados para contato pela Hórus.'));dom.window.close();});
+test('WhatsApp mode (no endpoint, number set): no error, no request, opens WhatsApp',async()=>{
+  const x=setup(new Response('{}'),{endpoint:'',turnstileSiteKey:'',whatsappNumber:'5535997608870'});let opened;x.w.open=(u)=>{opened=u;};
+  assert.equal(x.w.document.getElementById('submit-error').hidden,true);
+  await x.submit();assert.equal(x.calls.length,0);
+  assert.ok(opened.startsWith('https://wa.me/5535997608870?text='));assert.ok(decodeURIComponent(opened).includes('QA Local'));
+  assert.equal(x.w.document.getElementById('success-state').classList.contains('hidden'),false);
+  assert.equal(x.w.document.getElementById('wa-success').href,opened);x.dom.window.close();
+});
+test('WhatsApp mode still validates fields and consent',async()=>{
+  const x=setup(new Response('{}'),{whatsappNumber:'5535997608870'});let opened;x.w.open=(u)=>{opened=u;};
+  x.w.document.getElementById('privacy').checked=false;await x.submit();assert.equal(opened,undefined);
+  assert.equal(x.w.document.getElementById('success-state').classList.contains('hidden'),true);x.dom.window.close();
+});
