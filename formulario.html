@@ -538,6 +538,9 @@
   const config = window.HORUS_LEAD_CONFIG || {};
   const WA_NUMBER = /^55[0-9]{10,11}$/.test(config.whatsappNumber || '') ? config.whatsappNumber : '';
   const LEAD_API = config.endpoint || '';
+  // Enquanto a captação (endpoint + Turnstile) não está configurada, o formulário
+  // leva o contato direto para o WhatsApp oficial em vez de travar.
+  const WA_ONLY = (!LEAD_API || !config.turnstileSiteKey) && !!WA_NUMBER;
   const CONSENT_VERSION = 'horus-contato-2026-10-13';
   const LEAD_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   let challengeToken = '';
@@ -683,7 +686,9 @@
       'error-callback': () => { challengeToken = ''; displayError('Não foi possível verificar. Recarregue e tente novamente.'); }
     });
   }
-  if (!LEAD_API || !config.turnstileSiteKey) {
+  if (WA_ONLY) {
+    // modo WhatsApp: sem verificação, sem erro
+  } else if (!LEAD_API || !config.turnstileSiteKey) {
     displayError('Formulário temporariamente indisponível. Tente novamente mais tarde.');
   } else if (window.turnstile) renderChallenge();
   else {
@@ -717,6 +722,19 @@
     if (!validate()) {
       const firstErr = form.querySelector('.field.err, .check-wrap.err');
       if (firstErr) firstErr.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+      return;
+    }
+
+    if (WA_ONLY) {
+      const link = buildWaLink();
+      waSuccess.href = link;
+      successState.querySelector('h2').textContent = 'Agora é só enviar no WhatsApp';
+      successState.querySelector('p').textContent = 'Abrimos o WhatsApp da Hórus com sua mensagem pronta. Se não abriu, clique no botão abaixo. Respondemos sua mensagem.';
+      form.classList.add('hidden');
+      successState.classList.remove('hidden');
+      successState.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+      rebindMagnetic();
+      window.open(link, '_blank', 'noopener');
       return;
     }
 
